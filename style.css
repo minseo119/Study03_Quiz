@@ -28,6 +28,17 @@ body {
   padding: 24px 16px 48px;
 }
 
+.student {
+  margin: 0 0 16px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 h1 { font-size: 1.6rem; margin: 0 0 4px; }
 .lead, .muted { color: var(--muted); margin: 0 0 16px; }
 
