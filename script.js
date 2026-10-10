@@ -140,7 +140,149 @@ function selfTest(questions) {
   return { pass, fail };
 }
 
-// ===== 4. 실행 =====
+// ===== 4. 상태와 화면 조작 (브라우저에서만) =====
+const MODE_LABELS = { practice: "연습" };
+const state = {
+  category: null,
+  mode: "practice",
+  round: [],
+  index: 0,
+  score: 0,
+  records: [],   // { question, chosen, correct, points }
+  answered: false
+};
+
+function $(id) { return document.getElementById(id); }
+
+function showScreen(name) {
+  ["start", "quiz", "result"].forEach(s => { $("screen-" + s).hidden = s !== name; });
+  window.scrollTo(0, 0);
+}
+
+function formatScore(n) { return Number.isInteger(n) ? String(n) : n.toFixed(1); }
+
+function renderStart() {
+  const box = $("category-buttons");
+  box.innerHTML = "";
+  const errors = validateQuestions(typeof QUESTIONS !== "undefined" ? QUESTIONS : null);
+  CATEGORIES.forEach(category => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = category;
+    btn.disabled = errors.length > 0;
+    btn.addEventListener("click", () => startRound(category, "practice"));
+    box.appendChild(btn);
+  });
+  if (errors.length > 0) {
+    $("data-error").hidden = false;
+    $("data-error").textContent = "문항 데이터 오류: " + errors[0];
+    console.error(errors);
+  }
+  showScreen("start");
+}
+
+function startRound(category, mode) {
+  state.category = category;
+  state.mode = mode;
+  state.round = buildRound(QUESTIONS, category);
+  state.index = 0;
+  state.score = 0;
+  state.records = [];
+  renderQuestion();
+  showScreen("quiz");
+}
+
+function renderQuestion() {
+  const q = state.round[state.index];
+  state.answered = false;
+  $("quiz-title").textContent = `${state.category} · ${MODE_LABELS[state.mode]}`;
+  $("quiz-progress").textContent = `${state.index + 1} / ${state.round.length}`;
+  $("quiz-score").textContent = `점수 ${formatScore(state.score)}`;
+  $("quiz-question").textContent = q.question;
+
+  const box = $("quiz-choices");
+  box.innerHTML = "";
+  q.choices.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "choice";
+    btn.textContent = text;
+    btn.addEventListener("click", () => answer(i));
+    box.appendChild(btn);
+  });
+  $("quiz-feedback").hidden = true;
+}
+
+function answer(chosen) {
+  if (state.answered) return;          // 답을 고른 뒤에는 아무 변화 없음
+  state.answered = true;
+  const q = state.round[state.index];
+  const correct = chosen === q.answer;
+  const points = scoreAnswer(correct, false);
+  state.score += points;
+  state.records.push({ question: q, chosen, correct, points });
+
+  const buttons = $("quiz-choices").children;
+  Array.from(buttons).forEach((btn, i) => {
+    if (i === q.answer) btn.classList.add("correct");
+    else if (i === chosen) btn.classList.add("wrong");
+  });
+
+  const verdict = $("feedback-verdict");
+  verdict.textContent = correct ? "정답!" : "오답";
+  verdict.className = "verdict " + (correct ? "ok" : "bad");
+  $("feedback-explanation").textContent = q.explanation;
+  $("feedback-source").textContent = q.source.name;
+  $("feedback-source").href = q.source.url;
+  $("next-button").textContent = state.index === state.round.length - 1 ? "결과 보기" : "다음";
+  $("quiz-score").textContent = `점수 ${formatScore(state.score)}`;
+  $("quiz-feedback").hidden = false;
+}
+
+function next() {
+  if (state.index < state.round.length - 1) {
+    state.index++;
+    renderQuestion();
+  } else {
+    renderResult();
+  }
+}
+
+function renderResult() {
+  $("result-title").textContent = `${state.category} · ${MODE_LABELS[state.mode]}`;
+  $("result-score").textContent = `${formatScore(state.score)} / ${state.round.length}`;
+  $("result-note").textContent = "순위표에 기록되지 않음";
+  $("result-note").hidden = state.mode !== "practice";
+
+  const list = $("result-list");
+  list.innerHTML = "";
+  state.records.forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = r.question.question;
+    const tag = document.createElement("span");
+    tag.className = "tag " + (r.correct ? "ok" : "bad");
+    tag.textContent = r.correct
+      ? `정답: ${r.question.choices[r.question.answer]}`
+      : `오답: ${r.question.choices[r.chosen]} → 정답 ${r.question.choices[r.question.answer]}`;
+    li.appendChild(tag);
+    list.appendChild(li);
+  });
+  showScreen("result");
+}
+
+function initApp() {
+  $("next-button").addEventListener("click", next);
+  $("again-button").addEventListener("click", () => startRound(state.category, state.mode));
+  $("home-button").addEventListener("click", renderStart);
+  renderStart();
+  if (new URLSearchParams(location.search).has("test")) selfTest(QUESTIONS);
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", initApp);
+}
+
+// ===== 5. Node.js 실행 =====
 if (typeof module !== "undefined" && typeof require !== "undefined" && require.main === module) {
   // Node.js에서 직접 실행할 때
   let questions = [];
