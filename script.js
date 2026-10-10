@@ -180,13 +180,45 @@ const state = {
   round: [],
   index: 0,
   score: 0,
-  records: [],   // { question, chosen, correct, points }
-  answered: false
+  records: [],   // { question, chosen, correct, points, usedHint, timedOut }
+  answered: false,
+  timerId: null,
+  timeLeft: 0
 };
+const TIME_LIMIT = 15;
+
+// 타이머는 언제나 하나만 돈다. 새로 시작하기 전과 화면을 떠날 때 반드시 멈춘다.
+function stopTimer() {
+  if (state.timerId !== null) {
+    clearInterval(state.timerId);
+    state.timerId = null;
+  }
+}
+
+function renderTimer() {
+  const el = $("quiz-timer");
+  el.textContent = `남은 시간 ${state.timeLeft}초`;
+  el.classList.toggle("urgent", state.timeLeft <= 5);
+}
+
+function startTimer() {
+  stopTimer();
+  state.timeLeft = TIME_LIMIT;
+  renderTimer();
+  state.timerId = setInterval(() => {
+    state.timeLeft--;
+    renderTimer();
+    if (state.timeLeft <= 0) {
+      stopTimer();
+      answer(null);          // 시간 초과
+    }
+  }, 1000);
+}
 
 function $(id) { return document.getElementById(id); }
 
 function showScreen(name) {
+  if (name !== "quiz") stopTimer();
   ["start", "mode", "quiz", "result"].forEach(s => { $("screen-" + s).hidden = s !== name; });
   window.scrollTo(0, 0);
 }
@@ -264,16 +296,22 @@ function renderQuestion() {
     box.appendChild(btn);
   });
   $("quiz-feedback").hidden = true;
+
+  $("quiz-timer").hidden = state.mode !== "speed";
+  if (state.mode === "speed") startTimer();
+  else stopTimer();
 }
 
 function answer(chosen) {
   if (state.answered) return;          // 답을 고른 뒤에는 아무 변화 없음
   state.answered = true;
+  stopTimer();                         // 답을 고르거나 시간이 다 되면 그 자리에서 멈춤
   const q = state.round[state.index];
-  const correct = chosen === q.answer;
+  const timedOut = chosen === null;
+  const correct = !timedOut && chosen === q.answer;
   const points = scoreAnswer(correct, false);
   state.score += points;
-  state.records.push({ question: q, chosen, correct, points });
+  state.records.push({ question: q, chosen, correct, points, usedHint: false, timedOut });
 
   const buttons = $("quiz-choices").children;
   Array.from(buttons).forEach((btn, i) => {
@@ -282,7 +320,7 @@ function answer(chosen) {
   });
 
   const verdict = $("feedback-verdict");
-  verdict.textContent = correct ? "정답!" : "오답";
+  verdict.textContent = correct ? "정답!" : (timedOut ? "시간 초과" : "오답");
   verdict.className = "verdict " + (correct ? "ok" : "bad");
   $("feedback-explanation").textContent = q.explanation;
   $("feedback-source").textContent = q.source.name;
@@ -314,9 +352,10 @@ function renderResult() {
     li.textContent = r.question.question;
     const tag = document.createElement("span");
     tag.className = "tag " + (r.correct ? "ok" : "bad");
-    tag.textContent = r.correct
-      ? `정답: ${r.question.choices[r.question.answer]}`
-      : `오답: ${r.question.choices[r.chosen]} → 정답 ${r.question.choices[r.question.answer]}`;
+    const right = r.question.choices[r.question.answer];
+    if (r.correct) tag.textContent = `정답: ${right}`;
+    else if (r.timedOut) tag.textContent = `시간 초과 → 정답 ${right}`;
+    else tag.textContent = `오답: ${r.question.choices[r.chosen]} → 정답 ${right}`;
     li.appendChild(tag);
     list.appendChild(li);
   });
