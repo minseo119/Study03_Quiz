@@ -91,6 +91,98 @@ const QUESTIONS = [
     answer: 0,
     explanation: "성균관은 조선의 국립 최고 교육 기관으로 한양에 있었다.",
     source: { name: "한국민족문화대백과사전 「성균관」", url: "https://encykorea.aks.ac.kr/Article/E0029204" }
+  },
+
+  // ----- 세계지리 -----
+  {
+    id: "wg-01",
+    category: "세계지리",
+    question: "나일강 하류에 자리한 이집트의 수도는?",
+    choices: ["카이로", "알렉산드리아", "룩소르", "아스완"],
+    answer: 0,
+    explanation: "카이로는 나일강 삼각주 남쪽 끝에 있는 이집트의 수도다.",
+    source: { name: "Britannica 「Cairo」", url: "https://www.britannica.com/place/Cairo" }
+  },
+  {
+    id: "wg-02",
+    category: "세계지리",
+    question: "안데스산맥이 서쪽 해안을 따라 길게 뻗어 있는 대륙은?",
+    choices: ["남아메리카", "북아메리카", "아프리카", "오세아니아"],
+    answer: 0,
+    explanation: "안데스산맥은 남아메리카 서쪽을 따라 남북으로 이어진다.",
+    source: { name: "Britannica 「Andes Mountains」", url: "https://www.britannica.com/place/Andes-Mountains" }
+  },
+  {
+    id: "wg-03",
+    category: "세계지리",
+    question: "오스트레일리아 수도 특별 지역에 있는 오스트레일리아의 연방 수도는?",
+    choices: ["캔버라", "시드니", "멜버른", "브리즈번"],
+    answer: 0,
+    explanation: "캔버라는 시드니에서 남서쪽으로 약 240km 떨어진 연방 수도다.",
+    source: { name: "Britannica 「Canberra」", url: "https://www.britannica.com/place/Canberra" }
+  },
+  {
+    id: "wg-04",
+    category: "세계지리",
+    question: "아마존강이 남아메리카를 가로질러 흘러드는 바다는?",
+    choices: ["대서양", "태평양", "인도양", "카리브해"],
+    answer: 0,
+    explanation: "아마존강은 안데스산맥에서 시작해 동쪽으로 흘러 대서양에 이른다.",
+    source: { name: "Britannica 「Amazon River」", url: "https://www.britannica.com/place/Amazon-River" }
+  },
+  {
+    id: "wg-05",
+    category: "세계지리",
+    question: "수도가 키토이고 적도가 국토를 지나는 남아메리카의 나라는?",
+    choices: ["에콰도르", "콜롬비아", "볼리비아", "파라과이"],
+    answer: 0,
+    explanation: "에콰도르의 수도 키토 근처에 적도를 표시한 기념물이 있다.",
+    source: { name: "Britannica 「Ecuador」", url: "https://www.britannica.com/place/Ecuador" }
+  },
+  {
+    id: "wg-06",
+    category: "세계지리",
+    question: "온타리오주에 있는 캐나다의 수도는?",
+    choices: ["오타와", "토론토", "밴쿠버", "몬트리올"],
+    answer: 0,
+    explanation: "오타와는 온타리오주 남동부에 있는 캐나다의 수도다.",
+    source: { name: "Britannica 「Ottawa」", url: "https://www.britannica.com/place/Ottawa" }
+  },
+  {
+    id: "wg-07",
+    category: "세계지리",
+    question: "석호 위의 여러 섬에 세워져 운하가 길 역할을 하는 이탈리아의 도시는?",
+    choices: ["베네치아", "피렌체", "나폴리", "밀라노"],
+    answer: 0,
+    explanation: "베네치아는 이탈리아 북동부 석호 안의 섬들에 세운 도시다.",
+    source: { name: "Britannica 「Venice」", url: "https://www.britannica.com/place/Venice" }
+  },
+  {
+    id: "wg-08",
+    category: "세계지리",
+    question: "지브롤터 해협은 지중해와 어느 바다를 잇는가?",
+    choices: ["대서양", "홍해", "흑해", "인도양"],
+    answer: 0,
+    explanation: "지브롤터 해협은 유럽과 아프리카 사이에서 지중해와 대서양을 잇는다.",
+    source: { name: "Britannica 「Strait of Gibraltar」", url: "https://www.britannica.com/place/Strait-of-Gibraltar" }
+  },
+  {
+    id: "wg-09",
+    category: "세계지리",
+    question: "아프리카의 킬리만자로산이 있는 나라는?",
+    choices: ["탄자니아", "케냐", "우간다", "에티오피아"],
+    answer: 0,
+    explanation: "킬리만자로산은 탄자니아 북동부, 케냐 국경 가까이에 있다.",
+    source: { name: "Britannica 「Kilimanjaro」", url: "https://www.britannica.com/place/Kilimanjaro" }
+  },
+  {
+    id: "wg-10",
+    category: "세계지리",
+    question: "수도가 오슬로인 북유럽의 나라는?",
+    choices: ["노르웨이", "스웨덴", "핀란드", "덴마크"],
+    answer: 0,
+    explanation: "오슬로는 노르웨이의 수도이자 그 나라에서 인구가 가장 많은 도시다.",
+    source: { name: "Britannica 「Oslo」", url: "https://www.britannica.com/place/Oslo" }
   }
 ];
 
