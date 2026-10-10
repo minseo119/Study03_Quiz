@@ -182,6 +182,7 @@ const state = {
   score: 0,
   records: [],   // { question, chosen, correct, points, usedHint, timedOut }
   answered: false,
+  usedHint: false,
   timerId: null,
   timeLeft: 0
 };
@@ -297,9 +298,30 @@ function renderQuestion() {
   });
   $("quiz-feedback").hidden = true;
 
+  // 힌트는 문항마다 한 번. 새 문항에서 다시 쓸 수 있다.
+  state.usedHint = false;
+  const hint = $("hint-button");
+  hint.hidden = state.mode !== "hint";
+  hint.disabled = false;
+  hint.textContent = "힌트 (오답 2개 지우기)";
+
   $("quiz-timer").hidden = state.mode !== "speed";
   if (state.mode === "speed") startTimer();
   else stopTimer();
+}
+
+function useHint() {
+  if (state.answered || state.usedHint) return;
+  state.usedHint = true;
+  const q = state.round[state.index];
+  const buttons = $("quiz-choices").children;
+  pickHintRemovals(q).forEach(i => {
+    buttons[i].classList.add("removed");
+    buttons[i].disabled = true;
+  });
+  const hint = $("hint-button");
+  hint.textContent = "힌트 사용함";
+  hint.disabled = true;
 }
 
 function answer(chosen) {
@@ -309,9 +331,10 @@ function answer(chosen) {
   const q = state.round[state.index];
   const timedOut = chosen === null;
   const correct = !timedOut && chosen === q.answer;
-  const points = scoreAnswer(correct, false);
+  const points = scoreAnswer(correct, state.usedHint);
   state.score += points;
-  state.records.push({ question: q, chosen, correct, points, usedHint: false, timedOut });
+  state.records.push({ question: q, chosen, correct, points, usedHint: state.usedHint, timedOut });
+  $("hint-button").disabled = true;
 
   const buttons = $("quiz-choices").children;
   Array.from(buttons).forEach((btn, i) => {
@@ -353,7 +376,8 @@ function renderResult() {
     const tag = document.createElement("span");
     tag.className = "tag " + (r.correct ? "ok" : "bad");
     const right = r.question.choices[r.question.answer];
-    if (r.correct) tag.textContent = `정답: ${right}`;
+    if (r.correct && r.usedHint) tag.textContent = `정답 (힌트 0.5점): ${right}`;
+    else if (r.correct) tag.textContent = `정답: ${right}`;
     else if (r.timedOut) tag.textContent = `시간 초과 → 정답 ${right}`;
     else tag.textContent = `오답: ${r.question.choices[r.chosen]} → 정답 ${right}`;
     li.appendChild(tag);
@@ -367,6 +391,7 @@ function initApp() {
   $("again-button").addEventListener("click", () => startRound(state.category, state.mode));
   $("home-button").addEventListener("click", renderStart);
   $("back-button").addEventListener("click", renderStart);
+  $("hint-button").addEventListener("click", useHint);
   renderStart();
   if (new URLSearchParams(location.search).has("test")) selfTest(QUESTIONS);
 }

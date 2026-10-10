@@ -84,6 +84,9 @@ h2 { font-size: 1.25rem; margin: 0 0 16px; }
 .choice.correct { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); font-weight: 600; }
 .choice.wrong { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); font-weight: 600; }
 
+.choice.removed { opacity: 0.4; text-decoration: line-through; }
+.hint-button { width: 100%; margin-top: 12px; text-align: center; border-style: dashed; }
+
 .feedback {
   margin-top: 16px;
   padding: 16px;
