@@ -36,6 +36,17 @@ function scoreAnswer(isCorrect, usedHint) {
   return usedHint ? 0.5 : 1;
 }
 
+// 힌트: 오답 번호 세 개 가운데 두 개를 무작위로 골라 돌려준다.
+function pickHintRemovals(question, random = Math.random) {
+  const wrong = [0, 1, 2, 3].filter(i => i !== question.answer);
+  return shuffle(wrong, random).slice(0, 2);
+}
+
+// 한 판 기록에서 틀린(시간 초과 포함) 문항만 돌려준다.
+function wrongQuestions(records) {
+  return records.filter(r => !r.correct).map(r => r.question);
+}
+
 // 문항 데이터가 PRD 4.1·4.2 형식을 지키는지 검사하고 오류 문장 배열을 돌려준다.
 function validateQuestions(questions) {
   if (!Array.isArray(questions)) return ["QUESTIONS가 배열이 아님"];
@@ -129,6 +140,22 @@ function selfTest(questions) {
   check("validateQuestions: 출처가 http면 오류", validateQuestions(http).some(e => e.includes("https")));
   const short = goodSet(); short.pop();
   check("validateQuestions: 카테고리 문항 수가 10이 아니면 오류", validateQuestions(short).some(e => e.includes("10개여야 함")));
+
+  check("scoreAnswer: 힌트를 쓰고 맞히면 0.5점", scoreAnswer(true, true) === 0.5);
+  const hintQ = { choices: ["가", "나", "다", "라"], answer: 2 };
+  let hintOk = true;
+  for (let t = 0; t < 50; t++) {
+    const removed = pickHintRemovals(hintQ);
+    if (removed.length !== 2 || removed[0] === removed[1] || removed.includes(hintQ.answer)) hintOk = false;
+  }
+  check("pickHintRemovals: 서로 다른 오답 두 개만 고른다", hintOk);
+  const recs = [
+    { question: { id: "a" }, correct: true },
+    { question: { id: "b" }, correct: false },
+    { question: { id: "c" }, correct: false, timedOut: true }
+  ];
+  check("wrongQuestions: 틀린 문항(시간 초과 포함)만 돌려준다",
+    wrongQuestions(recs).map(q => q.id).join() === "b,c");
 
   const realErrors = validateQuestions(questions);
   realErrors.forEach(e => console.error("  문항 오류: " + e));
