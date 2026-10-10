@@ -275,6 +275,98 @@ const QUESTIONS = [
     answer: 0,
     explanation: "빛의 색마다 굴절하는 정도가 달라 프리즘에서 색이 나뉜다.",
     source: { name: "Britannica 「dispersion」", url: "https://www.britannica.com/science/dispersion-physics" }
+  },
+
+  // ----- 예술과 문화 -----
+  {
+    id: "ac-01",
+    category: "예술과 문화",
+    question: "파리 루브르 박물관에 있는 그림 「모나리자」를 그린 화가는?",
+    choices: ["레오나르도 다빈치", "미켈란젤로", "라파엘로", "보티첼리"],
+    answer: 0,
+    explanation: "「모나리자」는 레오나르도 다빈치의 작품으로 루브르 박물관에 있다.",
+    source: { name: "Britannica 「Mona Lisa」", url: "https://www.britannica.com/topic/Mona-Lisa-painting" }
+  },
+  {
+    id: "ac-02",
+    category: "예술과 문화",
+    question: "「교향곡 9번 라단조」를 남긴, 독일 본에서 태어난 작곡가는?",
+    choices: ["베토벤", "모차르트", "하이든", "브람스"],
+    answer: 0,
+    explanation: "베토벤은 본에서 태어났고, 교향곡 9번 라단조가 대표작으로 꼽힌다.",
+    source: { name: "Britannica 「Ludwig van Beethoven」", url: "https://www.britannica.com/biography/Ludwig-van-Beethoven" }
+  },
+  {
+    id: "ac-03",
+    category: "예술과 문화",
+    question: "눈먼 아버지를 위해 인당수에 몸을 던진 딸의 이야기를 부르는 판소리는?",
+    choices: ["심청가", "춘향가", "흥보가", "수궁가"],
+    answer: 0,
+    explanation: "「심청가」는 효녀 심청이 아버지의 눈을 뜨게 하는 이야기를 부른다.",
+    source: { name: "한국민족문화대백과사전 「심청가」", url: "https://encykorea.aks.ac.kr/Article/E0033942" }
+  },
+  {
+    id: "ac-04",
+    category: "예술과 문화",
+    question: "1889년 소용돌이치는 밤하늘을 그린 「별이 빛나는 밤」의 화가는?",
+    choices: ["빈센트 반 고흐", "폴 고갱", "폴 세잔", "클로드 모네"],
+    answer: 0,
+    explanation: "「별이 빛나는 밤」은 네덜란드 화가 반 고흐가 1889년에 그렸다.",
+    source: { name: "Britannica 「The Starry Night」", url: "https://www.britannica.com/topic/The-Starry-Night" }
+  },
+  {
+    id: "ac-05",
+    category: "예술과 문화",
+    question: "덴마크 왕자가 주인공인 셰익스피어의 비극은?",
+    choices: ["햄릿", "맥베스", "오셀로", "리어 왕"],
+    answer: 0,
+    explanation: "「햄릿」은 덴마크 왕자 햄릿이 아버지의 죽음을 복수하는 비극이다.",
+    source: { name: "Britannica 「Hamlet」", url: "https://www.britannica.com/topic/Hamlet-by-Shakespeare" }
+  },
+  {
+    id: "ac-06",
+    category: "예술과 문화",
+    question: "조선 후기 「씨름」, 「서당」 같은 풍속화를 화첩으로 남긴 화가는?",
+    choices: ["김홍도", "신윤복", "정선", "장승업"],
+    answer: 0,
+    explanation: "김홍도의 풍속도 화첩에 「씨름」과 「서당」이 들어 있다.",
+    source: { name: "한국민족문화대백과사전 「김홍도 필 풍속도 화첩」", url: "https://encykorea.aks.ac.kr/Article/E0013639" }
+  },
+  {
+    id: "ac-07",
+    category: "예술과 문화",
+    question: "바이올린 협주곡 네 곡으로 이루어진 「사계」를 작곡한 이탈리아 작곡가는?",
+    choices: ["비발디", "바흐", "헨델", "코렐리"],
+    answer: 0,
+    explanation: "「사계」는 비발디가 계절마다 한 곡씩 쓴 바이올린 협주곡 네 곡이다.",
+    source: { name: "Britannica 「The Four Seasons」", url: "https://www.britannica.com/topic/The-Four-Seasons-by-Vivaldi" }
+  },
+  {
+    id: "ac-08",
+    category: "예술과 문화",
+    question: "20세기 초 파리에서 브라크와 함께 입체파(큐비즘)를 이끈 화가는?",
+    choices: ["피카소", "마티스", "달리", "샤갈"],
+    answer: 0,
+    explanation: "입체파는 1907년 무렵부터 피카소와 브라크가 함께 발전시켰다.",
+    source: { name: "Britannica 「Cubism」", url: "https://www.britannica.com/art/Cubism" }
+  },
+  {
+    id: "ac-09",
+    category: "예술과 문화",
+    question: "1853년 베네치아에서 처음 공연된 오페라 「라 트라비아타」의 작곡가는?",
+    choices: ["베르디", "푸치니", "로시니", "바그너"],
+    answer: 0,
+    explanation: "「라 트라비아타」는 베르디의 오페라로 1853년 베네치아에서 초연했다.",
+    source: { name: "Britannica 「La traviata」", url: "https://www.britannica.com/topic/La-traviata" }
+  },
+  {
+    id: "ac-10",
+    category: "예술과 문화",
+    question: "가야의 우륵과 관련이 깊은, 열두 줄을 퉁겨 연주하는 현악기는?",
+    choices: ["가야금", "거문고", "해금", "아쟁"],
+    answer: 0,
+    explanation: "가야금은 가야에서 만들어졌고, 우륵이 이 악기로 12곡을 지었다.",
+    source: { name: "한국민족문화대백과사전 「가야금」", url: "https://encykorea.aks.ac.kr/Article/E0000261" }
   }
 ];
 

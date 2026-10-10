@@ -130,6 +130,12 @@ function selfTest(questions) {
   const short = goodSet(); short.pop();
   check("validateQuestions: 카테고리 문항 수가 10이 아니면 오류", validateQuestions(short).some(e => e.includes("10개여야 함")));
 
+  const realErrors = validateQuestions(questions);
+  realErrors.forEach(e => console.error("  문항 오류: " + e));
+  check("실제 문항 데이터가 형식 검사를 통과한다", realErrors.length === 0);
+  check("모든 해설이 80자 이하다",
+    Array.isArray(questions) && questions.length > 0 && questions.every(q => q.explanation.length <= 80));
+
   console.log(`자체 점검 결과: 통과 ${pass}, 실패 ${fail}`);
   return { pass, fail };
 }
