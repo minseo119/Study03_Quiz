@@ -183,6 +183,98 @@ const QUESTIONS = [
     answer: 0,
     explanation: "오슬로는 노르웨이의 수도이자 그 나라에서 인구가 가장 많은 도시다.",
     source: { name: "Britannica 「Oslo」", url: "https://www.britannica.com/place/Oslo" }
+  },
+
+  // ----- 과학 -----
+  {
+    id: "sc-01",
+    category: "과학",
+    question: "주기율표에서 원자 번호가 1인 원소는?",
+    choices: ["수소", "헬륨", "리튬", "탄소"],
+    answer: 0,
+    explanation: "수소는 원자 번호 1로, 원자핵에 양성자가 하나뿐이다.",
+    source: { name: "Britannica 「hydrogen」", url: "https://www.britannica.com/science/hydrogen" }
+  },
+  {
+    id: "sc-02",
+    category: "과학",
+    question: "세포에서 호흡으로 에너지를 내어 ATP를 만드는 세포 소기관은?",
+    choices: ["미토콘드리아", "리보솜", "골지체", "리소좀"],
+    answer: 0,
+    explanation: "미토콘드리아는 세포 호흡으로 ATP를 만드는 세포의 발전소다.",
+    source: { name: "Britannica 「mitochondrion」", url: "https://www.britannica.com/science/mitochondrion" }
+  },
+  {
+    id: "sc-03",
+    category: "과학",
+    question: "태양계에서 태양으로부터 네 번째로 가까운 행성은?",
+    choices: ["화성", "지구", "금성", "목성"],
+    answer: 0,
+    explanation: "태양에서 가까운 순서는 수성, 금성, 지구, 화성이다.",
+    source: { name: "Britannica 「Mars」", url: "https://www.britannica.com/place/Mars-planet" }
+  },
+  {
+    id: "sc-04",
+    category: "과학",
+    question: "뉴턴의 운동 제2법칙에서 힘은 질량과 무엇의 곱인가?",
+    choices: ["가속도", "속도", "변위", "운동량"],
+    answer: 0,
+    explanation: "제2법칙은 F = ma로, 힘은 질량과 가속도의 곱이다.",
+    source: { name: "Britannica 「Newton's laws of motion」", url: "https://www.britannica.com/science/Newtons-laws-of-motion" }
+  },
+  {
+    id: "sc-05",
+    category: "과학",
+    question: "1928년 푸른곰팡이에서 항생 물질 페니실린을 발견한 과학자는?",
+    choices: ["플레밍", "파스퇴르", "코흐", "리스터"],
+    answer: 0,
+    explanation: "알렉산더 플레밍이 1928년에 페니실린을 발견했다.",
+    source: { name: "Britannica 「Alexander Fleming」", url: "https://www.britannica.com/biography/Alexander-Fleming" }
+  },
+  {
+    id: "sc-06",
+    category: "과학",
+    question: "소리를 전달하는 물질이 없어 소리가 전해지지 않는 곳은?",
+    choices: ["진공", "물속", "공기", "강철"],
+    answer: 0,
+    explanation: "소리는 물질의 진동으로 전해지므로 매질이 없는 진공에서는 못 간다.",
+    source: { name: "Britannica 「sound」", url: "https://www.britannica.com/science/sound-physics" }
+  },
+  {
+    id: "sc-07",
+    category: "과학",
+    question: "적혈구 안에서 산소와 결합해 온몸으로 산소를 나르는 단백질은?",
+    choices: ["헤모글로빈", "인슐린", "케라틴", "콜라겐"],
+    answer: 0,
+    explanation: "헤모글로빈은 폐에서 산소와 결합해 몸의 조직으로 산소를 나른다.",
+    source: { name: "Britannica 「hemoglobin」", url: "https://www.britannica.com/science/hemoglobin" }
+  },
+  {
+    id: "sc-08",
+    category: "과학",
+    question: "현재 지구 대기를 이루는 원소 가운데 양이 가장 많은 것은?",
+    choices: ["질소", "산소", "아르곤", "탄소"],
+    answer: 0,
+    explanation: "질소는 지구 대기에 가장 많이 들어 있는 원소다.",
+    source: { name: "Britannica 「nitrogen」", url: "https://www.britannica.com/science/nitrogen" }
+  },
+  {
+    id: "sc-09",
+    category: "과학",
+    question: "1기압에서 순수한 물이 끓는 온도는 섭씨 몇 도인가?",
+    choices: ["100℃", "90℃", "110℃", "120℃"],
+    answer: 0,
+    explanation: "해수면의 표준 기압인 1기압에서 물은 100℃에서 끓는다.",
+    source: { name: "Britannica 「boiling point」", url: "https://www.britannica.com/science/boiling-point" }
+  },
+  {
+    id: "sc-10",
+    category: "과학",
+    question: "프리즘을 지난 햇빛이 무지개색으로 나뉘는 현상은?",
+    choices: ["분산", "반사", "간섭", "회절"],
+    answer: 0,
+    explanation: "빛의 색마다 굴절하는 정도가 달라 프리즘에서 색이 나뉜다.",
+    source: { name: "Britannica 「dispersion」", url: "https://www.britannica.com/science/dispersion-physics" }
   }
 ];
 
