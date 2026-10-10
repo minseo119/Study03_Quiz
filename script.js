@@ -168,7 +168,12 @@ function selfTest(questions) {
 }
 
 // ===== 4. 상태와 화면 조작 (브라우저에서만) =====
-const MODE_LABELS = { practice: "연습" };
+const MODE_LABELS = { practice: "연습", speed: "스피드", hint: "힌트" };
+const MODE_RULES = {
+  practice: "시간 제한 없음 · 틀린 문제 다시 풀기 · 순위표에 기록되지 않음",
+  speed: "문항마다 15초 · 맞히면 1점",
+  hint: "문항마다 오답 2개 지우기 1번 · 힌트 쓰고 맞히면 0.5점"
+};
 const state = {
   category: null,
   mode: "practice",
@@ -182,7 +187,7 @@ const state = {
 function $(id) { return document.getElementById(id); }
 
 function showScreen(name) {
-  ["start", "quiz", "result"].forEach(s => { $("screen-" + s).hidden = s !== name; });
+  ["start", "mode", "quiz", "result"].forEach(s => { $("screen-" + s).hidden = s !== name; });
   window.scrollTo(0, 0);
 }
 
@@ -197,7 +202,7 @@ function renderStart() {
     btn.type = "button";
     btn.textContent = category;
     btn.disabled = errors.length > 0;
-    btn.addEventListener("click", () => startRound(category, "practice"));
+    btn.addEventListener("click", () => renderModeSelect(category));
     box.appendChild(btn);
   });
   if (errors.length > 0) {
@@ -206,6 +211,27 @@ function renderStart() {
     console.error(errors);
   }
   showScreen("start");
+}
+
+function renderModeSelect(category) {
+  state.category = category;
+  $("mode-title").textContent = `${category} · 모드를 고르세요`;
+  const box = $("mode-buttons");
+  box.innerHTML = "";
+  ["practice", "speed", "hint"].forEach(mode => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-button";
+    const name = document.createElement("strong");
+    name.textContent = MODE_LABELS[mode];
+    const rule = document.createElement("span");
+    rule.className = "rule";
+    rule.textContent = MODE_RULES[mode];
+    btn.append(name, rule);
+    btn.addEventListener("click", () => startRound(category, mode));
+    box.appendChild(btn);
+  });
+  showScreen("mode");
 }
 
 function startRound(category, mode) {
@@ -301,6 +327,7 @@ function initApp() {
   $("next-button").addEventListener("click", next);
   $("again-button").addEventListener("click", () => startRound(state.category, state.mode));
   $("home-button").addEventListener("click", renderStart);
+  $("back-button").addEventListener("click", renderStart);
   renderStart();
   if (new URLSearchParams(location.search).has("test")) selfTest(QUESTIONS);
 }
