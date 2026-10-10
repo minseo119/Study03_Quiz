@@ -19,7 +19,11 @@ function shuffle(array, random = Math.random) {
 
 // 카테고리의 문항을 섞어 한 판을 만든다. 보기 순서도 섞고 answer를 섞인 위치로 고친다.
 function buildRound(questions, category, random = Math.random) {
-  const items = questions.filter(q => q.category === category);
+  return prepareRound(questions.filter(q => q.category === category), random);
+}
+
+// 문항 순서와 보기 순서를 섞는다. 틀린 문제 다시 풀기에서도 쓴다.
+function prepareRound(items, random = Math.random) {
   return shuffle(items, random).map(q => {
     const order = shuffle([0, 1, 2, 3], random);
     return {
@@ -183,6 +187,9 @@ const state = {
   records: [],   // { question, chosen, correct, points, usedHint, timedOut }
   answered: false,
   usedHint: false,
+  retry: false,       // 틀린 문제 다시 풀기 중인가(채점 안 함)
+  firstScore: 0,      // 처음 판의 점수. 다시 풀기를 해도 바뀌지 않는다
+  firstTotal: 0,
   timerId: null,
   timeLeft: 0
 };
@@ -271,8 +278,21 @@ function startRound(category, mode) {
   state.category = category;
   state.mode = mode;
   state.round = buildRound(QUESTIONS, category);
+  state.retry = false;
   state.index = 0;
   state.score = 0;
+  state.records = [];
+  renderQuestion();
+  showScreen("quiz");
+}
+
+// 연습 모드에서 방금 판에 틀린 문항만 다시 낸다. 채점하지 않는다.
+function startRetry() {
+  const wrong = wrongQuestions(state.records);
+  if (wrong.length === 0) return;
+  state.round = prepareRound(wrong);
+  state.retry = true;
+  state.index = 0;
   state.records = [];
   renderQuestion();
   showScreen("quiz");
@@ -281,9 +301,12 @@ function startRound(category, mode) {
 function renderQuestion() {
   const q = state.round[state.index];
   state.answered = false;
-  $("quiz-title").textContent = `${state.category} · ${MODE_LABELS[state.mode]}`;
+  $("quiz-title").textContent = state.retry
+    ? `${state.category} · 다시 풀기 · 채점 안 함`
+    : `${state.category} · ${MODE_LABELS[state.mode]}`;
   $("quiz-progress").textContent = `${state.index + 1} / ${state.round.length}`;
   $("quiz-score").textContent = `점수 ${formatScore(state.score)}`;
+  $("quiz-score").hidden = state.retry;
   $("quiz-question").textContent = q.question;
 
   const box = $("quiz-choices");
@@ -331,7 +354,7 @@ function answer(chosen) {
   const q = state.round[state.index];
   const timedOut = chosen === null;
   const correct = !timedOut && chosen === q.answer;
-  const points = scoreAnswer(correct, state.usedHint);
+  const points = state.retry ? 0 : scoreAnswer(correct, state.usedHint);
   state.score += points;
   state.records.push({ question: q, chosen, correct, points, usedHint: state.usedHint, timedOut });
   $("hint-button").disabled = true;
@@ -363,10 +386,21 @@ function next() {
 }
 
 function renderResult() {
-  $("result-title").textContent = `${state.category} · ${MODE_LABELS[state.mode]}`;
-  $("result-score").textContent = `${formatScore(state.score)} / ${state.round.length}`;
-  $("result-note").textContent = "순위표에 기록되지 않음";
+  if (!state.retry) {
+    state.firstScore = state.score;
+    state.firstTotal = state.round.length;
+  }
+  const right = state.records.filter(r => r.correct).length;
+  $("result-title").textContent = state.retry
+    ? `${state.category} · ${MODE_LABELS[state.mode]} · 다시 풀기 결과`
+    : `${state.category} · ${MODE_LABELS[state.mode]}`;
+  // 다시 풀기를 해도 처음 판의 점수를 그대로 보여 준다.
+  $("result-score").textContent = `${formatScore(state.firstScore)} / ${state.firstTotal}`;
+  $("result-note").textContent = state.retry
+    ? `다시 풀기 ${state.records.length}문항 중 ${right}문항 맞힘 · 채점 안 함 · 순위표에 기록되지 않음`
+    : "순위표에 기록되지 않음";
   $("result-note").hidden = state.mode !== "practice";
+  $("retry-button").hidden = !(state.mode === "practice" && wrongQuestions(state.records).length > 0);
 
   const list = $("result-list");
   list.innerHTML = "";
@@ -392,6 +426,7 @@ function initApp() {
   $("home-button").addEventListener("click", renderStart);
   $("back-button").addEventListener("click", renderStart);
   $("hint-button").addEventListener("click", useHint);
+  $("retry-button").addEventListener("click", startRetry);
   renderStart();
   if (new URLSearchParams(location.search).has("test")) selfTest(QUESTIONS);
 }
