@@ -1,4 +1,4 @@
-// 상식 퀴즈 문항. 형식은 PRD.md 4.1, 작성 규칙은 PRD.md 4.2를 따른다.
+// 상식 퀴즈 문항. 형식은 PRD.md 4.1, 작성 규칙은 CLAUDE.md(정본)와 PRD.md 4.2를 따른다.
 // 정답은 choices[0]에 두고 answer: 0으로 적는다. 화면에서는 보기를 섞는다.
 const QUESTIONS = [
   // ----- 한국사 -----
@@ -51,9 +51,9 @@ const QUESTIONS = [
     id: "kh-06",
     category: "한국사",
     question: "1919년 독립선언서를 발표하며 전국으로 퍼진 만세 운동은?",
-    choices: ["3·1 운동", "6·10 만세 운동", "광주 학생 항일 운동", "물산 장려 운동"],
+    choices: ["3·1 만세 운동", "6·10 만세 운동", "광주 학생 운동", "물산 장려 운동"],
     answer: 0,
-    explanation: "1919년 3월 1일 독립선언서 발표와 함께 전국에서 만세 시위가 일어났다.",
+    explanation: "1919년 3월 1일 독립선언서 발표로 시작된 3·1 운동은 전국으로 퍼졌다.",
     source: { name: "한국민족문화대백과사전 「3·1운동」", url: "https://encykorea.aks.ac.kr/Article/E0026772" }
   },
   {
@@ -118,7 +118,7 @@ const QUESTIONS = [
     question: "오스트레일리아 수도 특별 지역에 있는 오스트레일리아의 연방 수도는?",
     choices: ["캔버라", "시드니", "멜버른", "브리즈번"],
     answer: 0,
-    explanation: "캔버라는 시드니에서 남서쪽으로 약 240km 떨어진 연방 수도다.",
+    explanation: "캔버라는 시드니 남서쪽 내륙에 계획도시로 세운 연방 수도다.",
     source: { name: "Britannica 「Canberra」", url: "https://www.britannica.com/place/Canberra" }
   },
   {
@@ -253,7 +253,7 @@ const QUESTIONS = [
     id: "sc-08",
     category: "과학",
     question: "현재 지구 대기를 이루는 원소 가운데 양이 가장 많은 것은?",
-    choices: ["질소", "산소", "아르곤", "탄소"],
+    choices: ["질소", "산소", "아르곤", "수소"],
     answer: 0,
     explanation: "질소는 지구 대기에 가장 많이 들어 있는 원소다.",
     source: { name: "Britannica 「nitrogen」", url: "https://www.britannica.com/science/nitrogen" }
@@ -273,7 +273,7 @@ const QUESTIONS = [
     question: "프리즘을 지난 햇빛이 무지개색으로 나뉘는 현상은?",
     choices: ["분산", "반사", "간섭", "회절"],
     answer: 0,
-    explanation: "빛의 색마다 굴절하는 정도가 달라 프리즘에서 색이 나뉜다.",
+    explanation: "분산은 빛의 색마다 굴절 정도가 달라 프리즘에서 색이 나뉘는 현상이다.",
     source: { name: "Britannica 「dispersion」", url: "https://www.britannica.com/science/dispersion-physics" }
   },
 
@@ -282,7 +282,7 @@ const QUESTIONS = [
     id: "ac-01",
     category: "예술과 문화",
     question: "파리 루브르 박물관에 있는 그림 「모나리자」를 그린 화가는?",
-    choices: ["레오나르도 다빈치", "미켈란젤로", "라파엘로", "보티첼리"],
+    choices: ["다빈치", "미켈란젤로", "라파엘로", "보티첼리"],
     answer: 0,
     explanation: "「모나리자」는 레오나르도 다빈치의 작품으로 루브르 박물관에 있다.",
     source: { name: "Britannica 「Mona Lisa」", url: "https://www.britannica.com/topic/Mona-Lisa-painting" }
@@ -290,10 +290,10 @@ const QUESTIONS = [
   {
     id: "ac-02",
     category: "예술과 문화",
-    question: "「교향곡 9번 라단조」를 남긴, 독일 본에서 태어난 작곡가는?",
+    question: "독일 본에서 태어나 「교향곡 9번 라단조」를 남긴 작곡가는?",
     choices: ["베토벤", "모차르트", "하이든", "브람스"],
     answer: 0,
-    explanation: "베토벤은 본에서 태어났고, 교향곡 9번 라단조가 대표작으로 꼽힌다.",
+    explanation: "베토벤은 독일 본에서 태어났고, 교향곡 9번 라단조를 작곡했다.",
     source: { name: "Britannica 「Ludwig van Beethoven」", url: "https://www.britannica.com/biography/Ludwig-van-Beethoven" }
   },
   {
