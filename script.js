@@ -19,7 +19,11 @@ function shuffle(array, random = Math.random) {
 
 // 카테고리의 문항을 섞어 한 판을 만든다. 보기 순서도 섞고 answer를 섞인 위치로 고친다.
 function buildRound(questions, category, random = Math.random) {
-  const items = questions.filter(q => q.category === category);
+  return prepareRound(questions.filter(q => q.category === category), random);
+}
+
+// 문항 순서와 보기 순서를 섞는다. 틀린 문제 다시 풀기에서도 쓴다.
+function prepareRound(items, random = Math.random) {
   return shuffle(items, random).map(q => {
     const order = shuffle([0, 1, 2, 3], random);
     return {
@@ -34,6 +38,17 @@ function buildRound(questions, category, random = Math.random) {
 function scoreAnswer(isCorrect, usedHint) {
   if (!isCorrect) return 0;
   return usedHint ? 0.5 : 1;
+}
+
+// 힌트: 오답 번호 세 개 가운데 두 개를 무작위로 골라 돌려준다.
+function pickHintRemovals(question, random = Math.random) {
+  const wrong = [0, 1, 2, 3].filter(i => i !== question.answer);
+  return shuffle(wrong, random).slice(0, 2);
+}
+
+// 한 판 기록에서 틀린(시간 초과 포함) 문항만 돌려준다.
+function wrongQuestions(records) {
+  return records.filter(r => !r.correct).map(r => r.question);
 }
 
 // 문항 데이터가 PRD 4.1·4.2 형식을 지키는지 검사하고 오류 문장 배열을 돌려준다.
@@ -130,6 +145,22 @@ function selfTest(questions) {
   const short = goodSet(); short.pop();
   check("validateQuestions: 카테고리 문항 수가 10이 아니면 오류", validateQuestions(short).some(e => e.includes("10개여야 함")));
 
+  check("scoreAnswer: 힌트를 쓰고 맞히면 0.5점", scoreAnswer(true, true) === 0.5);
+  const hintQ = { choices: ["가", "나", "다", "라"], answer: 2 };
+  let hintOk = true;
+  for (let t = 0; t < 50; t++) {
+    const removed = pickHintRemovals(hintQ);
+    if (removed.length !== 2 || removed[0] === removed[1] || removed.includes(hintQ.answer)) hintOk = false;
+  }
+  check("pickHintRemovals: 서로 다른 오답 두 개만 고른다", hintOk);
+  const recs = [
+    { question: { id: "a" }, correct: true },
+    { question: { id: "b" }, correct: false },
+    { question: { id: "c" }, correct: false, timedOut: true }
+  ];
+  check("wrongQuestions: 틀린 문항(시간 초과 포함)만 돌려준다",
+    wrongQuestions(recs).map(q => q.id).join() === "b,c");
+
   const realErrors = validateQuestions(questions);
   realErrors.forEach(e => console.error("  문항 오류: " + e));
   check("실제 문항 데이터가 형식 검사를 통과한다", realErrors.length === 0);
@@ -141,21 +172,62 @@ function selfTest(questions) {
 }
 
 // ===== 4. 상태와 화면 조작 (브라우저에서만) =====
-const MODE_LABELS = { practice: "연습" };
+const MODE_LABELS = { practice: "연습", speed: "스피드", hint: "힌트" };
+const MODE_RULES = {
+  practice: "시간 제한 없음 · 틀린 문제 다시 풀기 · 순위표에 기록되지 않음",
+  speed: "문항마다 15초 · 맞히면 1점",
+  hint: "문항마다 오답 2개 지우기 1번 · 힌트 쓰고 맞히면 0.5점"
+};
 const state = {
   category: null,
   mode: "practice",
   round: [],
   index: 0,
   score: 0,
-  records: [],   // { question, chosen, correct, points }
-  answered: false
+  records: [],   // { question, chosen, correct, points, usedHint, timedOut }
+  answered: false,
+  usedHint: false,
+  retry: false,       // 틀린 문제 다시 풀기 중인가(채점 안 함)
+  firstScore: 0,      // 처음 판의 점수. 다시 풀기를 해도 바뀌지 않는다
+  firstTotal: 0,
+  timerId: null,
+  timeLeft: 0
 };
+const TIME_LIMIT = 15;
+
+// 타이머는 언제나 하나만 돈다. 새로 시작하기 전과 화면을 떠날 때 반드시 멈춘다.
+function stopTimer() {
+  if (state.timerId !== null) {
+    clearInterval(state.timerId);
+    state.timerId = null;
+  }
+}
+
+function renderTimer() {
+  const el = $("quiz-timer");
+  el.textContent = `남은 시간 ${state.timeLeft}초`;
+  el.classList.toggle("urgent", state.timeLeft <= 5);
+}
+
+function startTimer() {
+  stopTimer();
+  state.timeLeft = TIME_LIMIT;
+  renderTimer();
+  state.timerId = setInterval(() => {
+    state.timeLeft--;
+    renderTimer();
+    if (state.timeLeft <= 0) {
+      stopTimer();
+      answer(null);          // 시간 초과
+    }
+  }, 1000);
+}
 
 function $(id) { return document.getElementById(id); }
 
 function showScreen(name) {
-  ["start", "quiz", "result"].forEach(s => { $("screen-" + s).hidden = s !== name; });
+  if (name !== "quiz") stopTimer();
+  ["start", "mode", "quiz", "result"].forEach(s => { $("screen-" + s).hidden = s !== name; });
   window.scrollTo(0, 0);
 }
 
@@ -170,7 +242,7 @@ function renderStart() {
     btn.type = "button";
     btn.textContent = category;
     btn.disabled = errors.length > 0;
-    btn.addEventListener("click", () => startRound(category, "practice"));
+    btn.addEventListener("click", () => renderModeSelect(category));
     box.appendChild(btn);
   });
   if (errors.length > 0) {
@@ -181,12 +253,46 @@ function renderStart() {
   showScreen("start");
 }
 
+function renderModeSelect(category) {
+  state.category = category;
+  $("mode-title").textContent = `${category} · 모드를 고르세요`;
+  const box = $("mode-buttons");
+  box.innerHTML = "";
+  ["practice", "speed", "hint"].forEach(mode => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-button";
+    const name = document.createElement("strong");
+    name.textContent = MODE_LABELS[mode];
+    const rule = document.createElement("span");
+    rule.className = "rule";
+    rule.textContent = MODE_RULES[mode];
+    btn.append(name, rule);
+    btn.addEventListener("click", () => startRound(category, mode));
+    box.appendChild(btn);
+  });
+  showScreen("mode");
+}
+
 function startRound(category, mode) {
   state.category = category;
   state.mode = mode;
   state.round = buildRound(QUESTIONS, category);
+  state.retry = false;
   state.index = 0;
   state.score = 0;
+  state.records = [];
+  renderQuestion();
+  showScreen("quiz");
+}
+
+// 연습 모드에서 방금 판에 틀린 문항만 다시 낸다. 채점하지 않는다.
+function startRetry() {
+  const wrong = wrongQuestions(state.records);
+  if (wrong.length === 0) return;
+  state.round = prepareRound(wrong);
+  state.retry = true;
+  state.index = 0;
   state.records = [];
   renderQuestion();
   showScreen("quiz");
@@ -195,9 +301,12 @@ function startRound(category, mode) {
 function renderQuestion() {
   const q = state.round[state.index];
   state.answered = false;
-  $("quiz-title").textContent = `${state.category} · ${MODE_LABELS[state.mode]}`;
+  $("quiz-title").textContent = state.retry
+    ? `${state.category} · 다시 풀기 · 채점 안 함`
+    : `${state.category} · ${MODE_LABELS[state.mode]}`;
   $("quiz-progress").textContent = `${state.index + 1} / ${state.round.length}`;
   $("quiz-score").textContent = `점수 ${formatScore(state.score)}`;
+  $("quiz-score").hidden = state.retry;
   $("quiz-question").textContent = q.question;
 
   const box = $("quiz-choices");
@@ -211,16 +320,44 @@ function renderQuestion() {
     box.appendChild(btn);
   });
   $("quiz-feedback").hidden = true;
+
+  // 힌트는 문항마다 한 번. 새 문항에서 다시 쓸 수 있다.
+  state.usedHint = false;
+  const hint = $("hint-button");
+  hint.hidden = state.mode !== "hint";
+  hint.disabled = false;
+  hint.textContent = "힌트 (오답 2개 지우기)";
+
+  $("quiz-timer").hidden = state.mode !== "speed";
+  if (state.mode === "speed") startTimer();
+  else stopTimer();
+}
+
+function useHint() {
+  if (state.answered || state.usedHint) return;
+  state.usedHint = true;
+  const q = state.round[state.index];
+  const buttons = $("quiz-choices").children;
+  pickHintRemovals(q).forEach(i => {
+    buttons[i].classList.add("removed");
+    buttons[i].disabled = true;
+  });
+  const hint = $("hint-button");
+  hint.textContent = "힌트 사용함";
+  hint.disabled = true;
 }
 
 function answer(chosen) {
   if (state.answered) return;          // 답을 고른 뒤에는 아무 변화 없음
   state.answered = true;
+  stopTimer();                         // 답을 고르거나 시간이 다 되면 그 자리에서 멈춤
   const q = state.round[state.index];
-  const correct = chosen === q.answer;
-  const points = scoreAnswer(correct, false);
+  const timedOut = chosen === null;
+  const correct = !timedOut && chosen === q.answer;
+  const points = state.retry ? 0 : scoreAnswer(correct, state.usedHint);
   state.score += points;
-  state.records.push({ question: q, chosen, correct, points });
+  state.records.push({ question: q, chosen, correct, points, usedHint: state.usedHint, timedOut });
+  $("hint-button").disabled = true;
 
   const buttons = $("quiz-choices").children;
   Array.from(buttons).forEach((btn, i) => {
@@ -229,7 +366,7 @@ function answer(chosen) {
   });
 
   const verdict = $("feedback-verdict");
-  verdict.textContent = correct ? "정답!" : "오답";
+  verdict.textContent = correct ? "정답!" : (timedOut ? "시간 초과" : "오답");
   verdict.className = "verdict " + (correct ? "ok" : "bad");
   $("feedback-explanation").textContent = q.explanation;
   $("feedback-source").textContent = q.source.name;
@@ -249,10 +386,21 @@ function next() {
 }
 
 function renderResult() {
-  $("result-title").textContent = `${state.category} · ${MODE_LABELS[state.mode]}`;
-  $("result-score").textContent = `${formatScore(state.score)} / ${state.round.length}`;
-  $("result-note").textContent = "순위표에 기록되지 않음";
+  if (!state.retry) {
+    state.firstScore = state.score;
+    state.firstTotal = state.round.length;
+  }
+  const right = state.records.filter(r => r.correct).length;
+  $("result-title").textContent = state.retry
+    ? `${state.category} · ${MODE_LABELS[state.mode]} · 다시 풀기 결과`
+    : `${state.category} · ${MODE_LABELS[state.mode]}`;
+  // 다시 풀기를 해도 처음 판의 점수를 그대로 보여 준다.
+  $("result-score").textContent = `${formatScore(state.firstScore)} / ${state.firstTotal}`;
+  $("result-note").textContent = state.retry
+    ? `다시 풀기 ${state.records.length}문항 중 ${right}문항 맞힘 · 채점 안 함 · 순위표에 기록되지 않음`
+    : "순위표에 기록되지 않음";
   $("result-note").hidden = state.mode !== "practice";
+  $("retry-button").hidden = !(state.mode === "practice" && wrongQuestions(state.records).length > 0);
 
   const list = $("result-list");
   list.innerHTML = "";
@@ -261,9 +409,11 @@ function renderResult() {
     li.textContent = r.question.question;
     const tag = document.createElement("span");
     tag.className = "tag " + (r.correct ? "ok" : "bad");
-    tag.textContent = r.correct
-      ? `정답: ${r.question.choices[r.question.answer]}`
-      : `오답: ${r.question.choices[r.chosen]} → 정답 ${r.question.choices[r.question.answer]}`;
+    const right = r.question.choices[r.question.answer];
+    if (r.correct && r.usedHint) tag.textContent = `정답 (힌트 0.5점): ${right}`;
+    else if (r.correct) tag.textContent = `정답: ${right}`;
+    else if (r.timedOut) tag.textContent = `시간 초과 → 정답 ${right}`;
+    else tag.textContent = `오답: ${r.question.choices[r.chosen]} → 정답 ${right}`;
     li.appendChild(tag);
     list.appendChild(li);
   });
@@ -274,6 +424,9 @@ function initApp() {
   $("next-button").addEventListener("click", next);
   $("again-button").addEventListener("click", () => startRound(state.category, state.mode));
   $("home-button").addEventListener("click", renderStart);
+  $("back-button").addEventListener("click", renderStart);
+  $("hint-button").addEventListener("click", useHint);
+  $("retry-button").addEventListener("click", startRetry);
   renderStart();
   if (new URLSearchParams(location.search).has("test")) selfTest(QUESTIONS);
 }
