@@ -36,6 +36,47 @@ function scoreAnswer(isCorrect, usedHint) {
   return usedHint ? 0.5 : 1;
 }
 
+// 문항 데이터가 PRD 4.1·4.2 형식을 지키는지 검사하고 오류 문장 배열을 돌려준다.
+function validateQuestions(questions) {
+  if (!Array.isArray(questions)) return ["QUESTIONS가 배열이 아님"];
+  const errors = [];
+  const seen = new Set();
+
+  questions.forEach((q, n) => {
+    if (!q || typeof q !== "object") { errors.push(`${n + 1}번째 항목: 객체가 아님`); return; }
+    const label = typeof q.id === "string" && q.id ? q.id : `${n + 1}번째 항목`;
+
+    ["id", "category", "question", "explanation"].forEach(key => {
+      if (typeof q[key] !== "string" || q[key].trim() === "") errors.push(`${label}: ${key} 없음`);
+    });
+    if (!CATEGORIES.includes(q.category)) {
+      errors.push(`${label}: 알 수 없는 카테고리 "${q.category}"`);
+    } else if (!new RegExp(`^${CATEGORY_PREFIX[q.category]}-\\d{2}$`).test(q.id)) {
+      errors.push(`${label}: id가 ${CATEGORY_PREFIX[q.category]}-00 꼴이 아님`);
+    }
+    if (seen.has(q.id)) errors.push(`${label}: id 중복`);
+    seen.add(q.id);
+
+    if (!Array.isArray(q.choices) || q.choices.length !== 4) {
+      errors.push(`${label}: 보기가 4개가 아님`);
+    } else {
+      if (q.choices.some(c => typeof c !== "string" || c.trim() === "")) errors.push(`${label}: 빈 보기`);
+      if (new Set(q.choices).size !== 4) errors.push(`${label}: 보기 중복`);
+    }
+    if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer > 3) errors.push(`${label}: answer가 0~3이 아님`);
+
+    const s = q.source;
+    if (!s || typeof s.name !== "string" || s.name.trim() === "") errors.push(`${label}: 출처 이름 없음`);
+    if (!s || typeof s.url !== "string" || !s.url.startsWith("https://")) errors.push(`${label}: 출처 링크가 https://로 시작하지 않음`);
+  });
+
+  CATEGORIES.forEach(category => {
+    const count = questions.filter(q => q && q.category === category).length;
+    if (count !== QUESTIONS_PER_CATEGORY) errors.push(`${category}: 문항 ${count}개 (${QUESTIONS_PER_CATEGORY}개여야 함)`);
+  });
+  return errors;
+}
+
 // ===== 3. 자체 점검 =====
 // node script.js --test 또는 브라우저 주소 끝 ?test 로 실행한다.
 function selfTest(questions) {
@@ -67,6 +108,27 @@ function selfTest(questions) {
     round.every(q => q.choices[q.answer] === "정답" + q.question.replace("문제 ", "")));
   check("scoreAnswer: 맞히면 1점", scoreAnswer(true, false) === 1);
   check("scoreAnswer: 틀리면 0점", scoreAnswer(false, false) === 0 && scoreAnswer(false, true) === 0);
+
+  // 정상 데이터 40개를 만들어 하나씩 망가뜨려 본다.
+  function goodSet() {
+    const list = [];
+    CATEGORIES.forEach(c => {
+      for (let i = 1; i <= 10; i++) {
+        list.push({ id: `${CATEGORY_PREFIX[c]}-${String(i).padStart(2, "0")}`, category: c,
+          question: "문제", choices: ["가", "나", "다", "라"], answer: 0, explanation: "해설",
+          source: { name: "출처", url: "https://example.org" } });
+      }
+    });
+    return list;
+  }
+  const noChoice = goodSet(); noChoice[0].choices = ["가", "나", "다"];
+  check("validateQuestions: 보기가 3개면 오류", validateQuestions(noChoice).some(e => e.includes("보기가 4개가 아님")));
+  const dup = goodSet(); dup[0].choices = ["가", "가", "다", "라"];
+  check("validateQuestions: 보기가 중복되면 오류", validateQuestions(dup).some(e => e.includes("보기 중복")));
+  const http = goodSet(); http[0].source.url = "http://example.org";
+  check("validateQuestions: 출처가 http면 오류", validateQuestions(http).some(e => e.includes("https")));
+  const short = goodSet(); short.pop();
+  check("validateQuestions: 카테고리 문항 수가 10이 아니면 오류", validateQuestions(short).some(e => e.includes("10개여야 함")));
 
   console.log(`자체 점검 결과: 통과 ${pass}, 실패 ${fail}`);
   return { pass, fail };
